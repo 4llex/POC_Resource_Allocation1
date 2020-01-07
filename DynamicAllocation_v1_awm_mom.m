@@ -21,7 +21,7 @@ end
 
 %%
 TargetSer = 1e-3;                           %% SER Alvo
-SNR = 8:2:40;                               %% XXX
+SNR = 0:2:30;                               %% XXX
 %N = 6336;                                  %% Numero de Subportadoras
 b = zeros(1,N);                             %% Vetor de Bits das portadoras / Numerologia 3
 Total_bits = zeros(1,length(SNR));          %% Total de bits em um simbolo
@@ -56,9 +56,8 @@ bmax = zeros(1,nusers);
 %real_capacity = zeros(nusers,RB);
 %test = [];
 
-user_aloc = zeros(length(SNR),nusers);
-
-num_itr = 100;
+num_itr = 3000;
+alloc = zeros(length(SNR),num_itr*nusers);
 for i=1:length(SNR)
     i
     j=0;
@@ -66,7 +65,7 @@ for i=1:length(SNR)
     while j<num_itr 
         
         
-        bmin = [4, 4, 50];
+        bmin = [120, 120, 120]; %120 for each user suggested by Wheberth
         
         % Gera o canal randomico para cada user
         for user=1:nusers
@@ -140,8 +139,10 @@ for i=1:length(SNR)
             
         end
         
+        % --- Calcula a capacidade alocada de cada usuario / allocation per
+        % user
         for user=1:nusers
-            user_aloc(i,user) = user_aloc(i,user) + sum(real_capacity(user,:)); % cada 'i' é uma SNR
+            alloc(i,j*3+user) = sum(real_capacity(user,:));
         end
              
         b = sum(real_capacity);
@@ -150,9 +151,6 @@ for i=1:length(SNR)
     end  
     
     
-    for user=1:nusers
-        user_aloc(i,user) = user_aloc(i,user)/100; % cada 'i' é uma SNR
-    end
     
     Total_bits(i) = Total_bits(i)/num_itr; 
     bits_per_rb(i) = (Total_bits(i)/RB)*RE; 
@@ -166,21 +164,12 @@ D2 = SimData.Static.DataBPRB;
 DynamicData=load('dynamicMaxVazao.mat');
 D3 = DynamicData.Dynamic.DataSNR;
 D4 = DynamicData.Dynamic.DataBPRB;
+
 %% Saving Vector Results in a File
-% if (Numerology == 1)
-%     DynamicMOM.DataSNR = SNR;   
-%     DynamicMOM.DataBPRB = bits_per_rb;
-%     FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\DynamicAllocation\dynamic_mom_tese_num1.mat'); 
-%     save(FileName,'DynamicMOM');
-% else
-%     DynamicMOM.DataSNR = SNR;   
-%     DynamicMOM.DataBPRB = bits_per_rb;
-%     FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\DynamicAllocation\dynamic_mom_tese_num3.mat'); 
-%     save(FileName,'DynamicMOM');
-% end
 DynamicAWM.DataSNR = SNR;   
 DynamicAWM.DataBPRB = bits_per_rb;
-FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\DynamicAllocation\dynamicAWM.mat'); 
+DynamicAWM.DataPDF = alloc;
+FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\POC_Resource_Allocation\dynamicAWM.mat'); 
 save(FileName,'DynamicAWM');
 
 %% Gera graficos de Bits/SNR

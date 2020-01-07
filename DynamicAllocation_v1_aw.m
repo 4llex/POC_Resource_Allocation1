@@ -18,7 +18,7 @@ end
 
 %%
 TargetSer = 1e-3;                           %% SER Alvo
-SNR = 0:2:40;                               %% XXX
+SNR = 0:2:30;                               %% XXX
 %N = 6336;                                  %% Numero de Subportadoras
 b = zeros(1,N);                             %% Vetor de Bits das portadoras / Numerologia 3
 Total_bits = zeros(1,length(SNR));          %% Total de bits em um simbolo
@@ -48,7 +48,9 @@ capacity = zeros(nusers,RB);
 
 user_aloc = zeros(length(SNR),nusers);
 
-num_itr = 100;
+num_itr = 3000;
+alloc = zeros(length(SNR),num_itr*nusers);
+
 for i=1:length(SNR)
     i
     j=0;
@@ -69,7 +71,6 @@ for i=1:length(SNR)
             mask(user,:) = ( abs(H(user,:))== max(abs(H)) ); % mask é 1 onde o user pode transmitir melhor
             [~,~, capacity(user,:) ] = fcn_waterfilling(Pu, P/(SNRLIN*RB), Gamma, H(user,:), mask(user,:) );
         end
-%       sum(mask(:))
 
    
         b = sum(capacity);
@@ -80,75 +81,33 @@ for i=1:length(SNR)
         b((b>4)&(b<6)) = 4;
         b((b>6)&(b<8)) = 6;
         b(b>8) = 8;
-%         b(b<0,083) = 0;
-%         b((b>=0.083)&(b<0.167)) = 0.083;
-%         b((b>=0.167)&(b<0.250)) = 0.167;
-%         b((b>=0.250)&(b<0.333)) = 0.250;
-%         b((b>=0.333)&(b<0.417)) = 0.333;
-%         b((b>=0.417)&(b<0.583)) = 0.417;
-%         b((b>=0.583)&(b<0.750)) = 0.583;
-%         b((b>=0.750)&(b<0.833)) = 0.750;
-%         b((b>=0.833)&(b<1.000)) = 0.833;
-%         b((b>=1.000)&(b<1.166)) = 1.000;
-%         b((b>=1.166)&(b<1.500)) = 1.166;
-%         b((b>=1.500)&(b<1.833)) = 1.500;
-%         b((b>=1.833)&(b<2.167)) = 1.833;
-%         b((b>=2.167)&(b<2.500)) = 2.167;
-%         b((b>=2.500)&(b<3.000)) = 2.500;
-%         b((b>=3.000)&(b<3.333)) = 3.000;
-%         b((b>=3.333)&(b<3.500)) = 3.333;
-%         b((b>=3.500)&(b<4.000)) = 3.500;
-%         b((b>=4.000)&(b<4.500)) = 4.000;
-%         b((b>=4.500)&(b<4.750)) = 4.500;
-%         b((b>=4.750)&(b<5.250)) = 4.750;
-%         b((b>=5.250)&(b<5.500)) = 5.250;
-%         b((b>=5.500)&(b<6.000)) = 5.500;
-%         b((b>=6.000)&(b<6.667)) = 6.000;
-%         b((b>=6.667)&(b<7.000)) = 6.667;
-%         b((b>=7.000)&(b<7.333)) = 7.000;
-%         b((b>=7.333)&(b<7.667)) = 7.333;
-%         b(b>=7.667) = 7.667;
         
         for user=1:nusers
-            user_aloc(i,user) = user_aloc(i,user) + sum(b.*mask(user,:)); % cada 'i' é uma SNR
+             alloc(i,j*3+user) = sum(b.*mask(user,:));
         end
         
-        Total_bits(i) = Total_bits(i) + sum(b);
-        %bm(j) = b;
         
+        Total_bits(i) = Total_bits(i) + sum(b);        
         j = j+1;
     end  
     
-    for user=1:nusers
-       user_aloc(i,user) = user_aloc(i,user)/num_itr; % cada 'i' é uma SNR
-    end
     
     Total_bits(i) = Total_bits(i)/num_itr;
     bits_per_rb(i) = (Total_bits(i)/RB)*RE; 
 end
 
-%% Loading File
-
+%% Loading File - Static data
 SimData=load('static.mat');
 D1 = SimData.Static.DataSNR;
 D2 = SimData.Static.DataBPRB;  
 
 %% Saving Vector Results in a File
-% if (Numerology == 1)
-%     Dynamic.DataSNR = SNR;   
-%     Dynamic.DataBPRB = bits_per_rb;
-%     FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\DynamicAllocation\dynamicMaxVazao_num1.mat'); 
-%     save(FileName,'Dynamic');
-% else
-%     Dynamic.DataSNR = SNR;   
-%     Dynamic.DataBPRB = bits_per_rb;
-%     FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\DynamicAllocation\dynamicMaxVazao_num3.mat'); 
-%     save(FileName,'Dynamic');
-% end
 Dynamic.DataSNR = SNR;   
 Dynamic.DataBPRB = bits_per_rb;
+Dynamic.DataPDF = alloc;
 FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\POC_Resource_Allocation\dynamicMaxVazao.mat'); 
 save(FileName,'Dynamic');
+
 %% Gera graficos de Bits/SNR
 figure;
 plot(SNR, bits_per_rb, '-o');
