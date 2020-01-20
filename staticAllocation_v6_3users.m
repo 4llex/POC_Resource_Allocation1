@@ -3,12 +3,11 @@
 
 %%
 N = 132;                                    %% Number of subcarriers
-RB = 132;                                   %% qtd de RB
 TargetSer = 1e-3;                           %% SER Alvo
-SNR = 0:2:30;                               %% XXX
+SNR = 0:2:44;                               %% SNR range
 b = zeros(1,N);                             %% Vetor de Bits das portadoras / Numerologia 3
 Total_bits = zeros(1,length(SNR));          %% Total de bits em um simbolo
-bits_per_rb = zeros(1,length(SNR));         %% qtd media de Bits por RB 
+bits_per_rb = zeros(1,length(SNR));         %% qtd media de Bits por subportadora 
 nusers = 3;
 
 %% SNR gap para constelação M-QAM:
@@ -32,8 +31,6 @@ mask3 = circshift(mask2, 44);
 H    = ones(nusers,N);
 
 num_itr = 3000;
-alloc = zeros(length(SNR),num_itr*nusers); %Para cada SNR e cada iteração, guarda  se a alocação de cada usuario
-                                           %guarda a quantidade total bits alocada pra cada usuario em cada iteração 
 for i=1:length(SNR)
     i
     j=0;
@@ -51,9 +48,9 @@ for i=1:length(SNR)
         P  = 20;
         Pu = P/3;
         
-        [subPower1,~, subCapacity1 ] = fcn_waterfilling(Pu, P/(SNRLIN*RB), Gamma, H(user,:), mask1);
-        [subPower2,~, subCapacity2 ] = fcn_waterfilling(Pu, P/(SNRLIN*RB), Gamma, H(user,:), mask2);
-        [subPower3,~, subCapacity3 ] = fcn_waterfilling(Pu, P/(SNRLIN*RB), Gamma, H(user,:), mask3);
+        [subPower1,~, subCapacity1 ] = fcn_waterfilling(Pu, P/(SNRLIN*N), Gamma, H(user,:), mask1);
+        [subPower2,~, subCapacity2 ] = fcn_waterfilling(Pu, P/(SNRLIN*N), Gamma, H(user,:), mask2);
+        [subPower3,~, subCapacity3 ] = fcn_waterfilling(Pu, P/(SNRLIN*N), Gamma, H(user,:), mask3);
     
         b = subCapacity1 + subCapacity2 +  subCapacity3;
 
@@ -63,10 +60,6 @@ for i=1:length(SNR)
         b((b>4)&(b<6)) = 4;
         b((b>6)&(b<8)) = 6;
         b(b>8) = 8;
-        
-        alloc(i,j*3+1) = sum(b.*mask1);
-        alloc(i,j*3+2) = sum(b.*mask2);
-        alloc(i,j*3+3) = sum(b.*mask3);
  
         
         Total_bits(i) = Total_bits(i) + sum(b);        
@@ -75,14 +68,13 @@ for i=1:length(SNR)
     
     
     Total_bits(i) = Total_bits(i)/num_itr;
-    bits_per_rb(i) = (Total_bits(i)/RB); 
+    bits_per_rb(i) = (Total_bits(i)/N); 
 end
 
 %% Saving Vector in a File
 Static.DataSNR = SNR;   
 Static.DataBPRB = bits_per_rb;
-Static.DataPDF = alloc; 
-FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\POC_Resource_Allocation\static.mat'); 
+FileName = strcat('C:\Users\alexrosa\Documents\MATLAB\POC_Resource_Allocation1\static.mat'); 
 save(FileName,'Static');
 
 %% Gera graficos de Bits/SNR
@@ -90,6 +82,6 @@ figure;
 plot(SNR, bits_per_rb, '-.r*');
 title('Alocação Estática em sistema de multiplo acesso Ortogonal');
 xlabel('SNR [dB]'); 
-ylabel('Bits/RB'); 
+ylabel('Bits/subportadora'); 
 grid on;
 grid minor;
