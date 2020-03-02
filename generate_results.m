@@ -17,15 +17,17 @@ dynamicAWM_BPRB  = DynamicAWM_Data.DynamicAWM.DataBPRB;
 
 %% Gera graficos de Média de Bits/SNR
 figure;
-plot(dynamicAWM_SNR, dynamicAWM_BPRB, '-ok','LineWidth',1.1);
-title('Alocação de Recursos em sistema de multiplo acesso Ortogonal');
+plot(staticSNR, staticBPRB, '-.b*');
+
+%plot(dynamicAWM_SNR, dynamicAWM_BPRB, '-sk','MarkerFaceColor',[.09 1 .0],'LineWidth',1.1);
+%title('Resource Allocation in Orthogonal Multiple Access Systems');
 xlabel('SNR [dB]'); 
-ylabel('Bits/Subportadora'); 
+ylabel('Average Bits per Subcarrier'); 
 grid on;
 grid minor;
 
 hold on;
-plot(dynamicSNR, dynamicBPRB, '--b');
+plot(dynamicSNR, dynamicBPRB, '-.r*');
 hold on;
-plot(staticSNR, staticBPRB, '--r');
-legend('Water-filling Modificado - MOM', 'Dinamica - Máx. Vazão', 'Alocação Estática');
+plot(dynamicAWM_SNR, dynamicAWM_BPRB, '-sk','MarkerFaceColor',[.09 1 .0],'LineWidth',1.1);
+legend('Static Allocation', 'Dynamic WA - Max. Throughtput', 'Dynamic MWA-MOM');
