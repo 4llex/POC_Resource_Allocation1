@@ -33,7 +33,7 @@ capacity = zeros(nusers,N);
 
 user_aloc = zeros(length(SNR),nusers);
 
-num_itr = 3000;
+num_itr = 5000;
 for i=1:length(SNR)
     i
     j=0;
